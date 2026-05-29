@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEO SQL Portfolio — UC1: Monthly GSC Performance Summary</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d0d0d;
+    --paper: #f5f2eb;
+    --accent: #e8440a;
+    --accent2: #1a6bff;
+    --muted: #7a7570;
+    --border: #d8d3c8;
+    --code-bg: #1a1a1a;
+    --code-fg: #f0ead6;
+    --tag-bg: #ede9e0;
+    --positive: #1c7a3e;
+    --negative: #c0341a;
+    --neutral: #555;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.65;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  .site-header {
+    border-bottom: 1.5px solid var(--ink);
+    padding: 18px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    background: var(--paper);
+    z-index: 100;
+  }
+  .site-header .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .site-header nav {
+    display: flex;
+    gap: 28px;
+  }
+  .site-header nav a {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color .2s;
+  }
+  .site-header nav a:hover { color: var(--ink); }
+
+  /* ── HERO ── */
+  .hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 420px;
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .hero-left {
+    padding: 64px 48px;
+    border-right: 1.5px solid var(--ink);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: .08em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+  .hero-tag::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 1.5px;
+    background: var(--accent);
+  }
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(36px, 4vw, 56px);
+    line-height: 1.05;
+    letter-spacing: -.02em;
+    color: var(--ink);
+  }
+  .hero-title em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .hero-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 32px;
+  }
+  .pill {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--muted);
+    background: var(--tag-bg);
+    letter-spacing: .04em;
+  }
+  .pill.accent { border-color: var(--accent); color: var(--accent); background: #fdf1ec; }
+
+  .hero-right {
+    padding: 64px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 24px;
+  }
+  .hero-summary {
+    font-size: 16px;
+    font-weight: 300;
+    color: var(--ink);
+    line-height: 1.7;
+    max-width: 480px;
+  }
+  .concept-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .concept-list li {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .concept-list li::before {
+    content: '→';
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  /* ── LAYOUT ── */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 48px;
+  }
+
+  /* ── SECTION DIVIDER ── */
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 32px 0 24px;
+    border-top: 1.5px solid var(--ink);
+    margin-top: 64px;
+  }
+  .section-label:first-child { border-top: none; margin-top: 0; }
+  .section-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .section-title-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -.01em;
+  }
+
+  /* ── QUERY BLOCKS ── */
+  .query-block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1.5px solid var(--ink);
+    margin-bottom: 40px;
+    animation: fadeUp .5s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .query-block.full { grid-template-columns: 1fr; }
+
+  .qb-explain {
+    padding: 32px 36px;
+    border-right: 1.5px solid var(--ink);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .query-block.full .qb-explain { border-right: none; border-bottom: 1.5px solid var(--ink); }
+
+  .qb-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .qb-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 1.25;
+  }
+  .qb-desc {
+    font-size: 14px;
+    color: #444;
+    line-height: 1.65;
+    font-weight: 300;
+  }
+  .callout {
+    background: var(--tag-bg);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.6;
+    margin-top: 4px;
+  }
+  .callout strong {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 4px;
+    color: var(--accent);
+  }
+
+  /* ── CODE ── */
+  .qb-code {
+    background: var(--code-bg);
+    padding: 28px 32px;
+    overflow-x: auto;
+  }
+  pre {
+    font-family: 'DM Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.75;
+    color: var(--code-fg);
+    white-space: pre;
+  }
+  .kw  { color: #ff7b6b; }   /* keywords */
+  .fn  { color: #79c7e3; }   /* functions */
+  .str { color: #a8d9a0; }   /* strings */
+  .cm  { color: #666; font-style: italic; }  /* comments */
+  .op  { color: #e5c07b; }   /* operators / punctuation highlight */
+  .num { color: #d9a0f5; }   /* numbers */
+
+  /* ── OUTPUT TABLES ── */
+  .qb-output {
+    padding: 28px 32px;
+    overflow-x: auto;
+    border-top: 1.5px solid var(--ink);
+  }
+  .output-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead th {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 8px 12px;
+    border-bottom: 1.5px solid var(--ink);
+    text-align: left;
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink);
+    font-weight: 300;
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--tag-bg); }
+  td.mono { font-family: 'DM Mono', monospace; font-size: 12px; }
+  td.positive { color: var(--positive); font-weight: 500; font-family: 'DM Mono', monospace; font-size: 12px; }
+  td.negative { color: var(--negative); font-weight: 500; font-family: 'DM Mono', monospace; font-size: 12px; }
+  td.neutral  { color: var(--neutral);  font-weight: 500; font-family: 'DM Mono', monospace; font-size: 12px; }
+
+  /* ── CHARTS ── */
+  .chart-block {
+    border: 1.5px solid var(--ink);
+    margin-bottom: 40px;
+  }
+  .chart-header {
+    padding: 20px 28px;
+    border-bottom: 1.5px solid var(--ink);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .chart-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .chart-subtitle {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .chart-img {
+    width: 100%;
+    display: block;
+    background: #fff;
+  }
+
+  /* ── DEVICE SECTION ── */
+  .device-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0;
+    border: 1.5px solid var(--ink);
+    margin-bottom: 40px;
+  }
+  .device-card {
+    padding: 24px 28px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .device-card:nth-child(3n) { border-right: none; }
+  .device-section-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  .device-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .device-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    width: 52px;
+    flex-shrink: 0;
+    letter-spacing: .04em;
+  }
+  .device-bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+  .device-bar {
+    height: 100%;
+    border-radius: 1px;
+    transition: width .6s ease;
+  }
+  .bar-desktop { background: var(--accent2); }
+  .bar-mobile  { background: var(--accent); }
+  .bar-tablet  { background: var(--muted); }
+  .device-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--ink);
+    width: 36px;
+    text-align: right;
+  }
+
+  /* ── INSIGHTS ── */
+  .insights-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border: 1.5px solid var(--ink);
+    margin-bottom: 64px;
+  }
+  .insight-card {
+    padding: 28px 32px;
+    border-right: 1.5px solid var(--ink);
+  }
+  .insight-card:last-child { border-right: none; }
+  .insight-icon {
+    font-size: 22px;
+    margin-bottom: 12px;
+  }
+  .insight-heading {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  .insight-body {
+    font-size: 13px;
+    color: #444;
+    line-height: 1.65;
+    font-weight: 300;
+  }
+
+  /* ── FOOTER ── */
+  .site-footer {
+    border-top: 1.5px solid var(--ink);
+    padding: 28px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .site-footer p {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: .04em;
+  }
+  .next-case {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--ink);
+    text-decoration: none;
+    border: 1px solid var(--ink);
+    padding: 8px 16px;
+    transition: background .2s, color .2s;
+    letter-spacing: .04em;
+  }
+  .next-case:hover { background: var(--ink); color: var(--paper); }
+
+  /* ── METRIC STRIP ── */
+  .metric-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border: 1.5px solid var(--ink);
+    margin-bottom: 40px;
+  }
+  .metric-cell {
+    padding: 24px 28px;
+    border-right: 1.5px solid var(--ink);
+  }
+  .metric-cell:last-child { border-right: none; }
+  .metric-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .metric-value {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    letter-spacing: -.02em;
+    line-height: 1;
+  }
+  .metric-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-weight: 300;
+  }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero-left { border-right: none; border-bottom: 1.5px solid var(--ink); }
+    .query-block { grid-template-columns: 1fr; }
+    .qb-explain { border-right: none; border-bottom: 1.5px solid var(--ink); }
+    .insights-grid { grid-template-columns: 1fr; }
+    .insight-card { border-right: none; border-bottom: 1.5px solid var(--border); }
+    .metric-strip { grid-template-columns: 1fr 1fr; }
+    .metric-cell:nth-child(2) { border-right: none; }
+    .metric-cell:nth-child(3) { border-top: 1.5px solid var(--ink); }
+    .container { padding: 0 20px; }
+    .site-header, .site-footer { padding: 16px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <a class="logo" href="#">SEO × SQL Portfolio</a>
+  <nav>
+    <a href="#queries">Queries</a>
+    <a href="#outputs">Outputs</a>
+    <a href="#insights">Insights</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div>
+      <div class="hero-tag">Use Case 01 · Google Search Console</div>
+      <h1 class="hero-title">Monthly GSC<br><em>Performance</em><br>Summary</h1>
+    </div>
+    <div class="hero-meta">
+      <span class="pill accent">DuckDB SQL</span>
+      <span class="pill">Google Colab</span>
+      <span class="pill">12 months data</span>
+      <span class="pill">50 pages · all dimensions</span>
+    </div>
+  </div>
+  <div class="hero-right">
+    <p class="hero-summary">Raw GSC exports contain one row per date × page × query × device × country — millions of rows that are unreadable as-is. These four SQL queries transform that noise into actionable monthly performance intelligence, broken down by content section.</p>
+    <ul class="concept-list">
+      <li>Weighted average position (not a naive mean)</li>
+      <li>Recalculated CTR from aggregated totals</li>
+      <li>Section classification with CASE WHEN</li>
+      <li>Month-over-month change with LAG window function</li>
+      <li>Device split % using partitioned window SUM</li>
+    </ul>
+  </div>
+</section>
+
+<!-- MAIN -->
+<main>
+<div class="container" style="padding-top: 64px;" id="queries">
+
+  <!-- METRIC STRIP: site-wide annual totals -->
+  <div class="metric-strip">
+    <div class="metric-cell">
+      <div class="metric-label">Annual Clicks</div>
+      <div class="metric-value">475K</div>
+      <div class="metric-sub">Jun 2025 – May 2026</div>
+    </div>
+    <div class="metric-cell">
+      <div class="metric-label">Annual Impressions</div>
+      <div class="metric-value">9.8M</div>
+      <div class="metric-sub">all pages · all devices</div>
+    </div>
+    <div class="metric-cell">
+      <div class="metric-label">Avg. CTR</div>
+      <div class="metric-value">4.8%</div>
+      <div class="metric-sub">calculated from totals</div>
+    </div>
+    <div class="metric-cell">
+      <div class="metric-label">Avg. Position</div>
+      <div class="metric-value">21.9</div>
+      <div class="metric-sub">impression-weighted</div>
+    </div>
+  </div>
+
+  <!-- Q1 -->
+  <div class="section-label">
+    <span class="section-num">Query 01</span>
+    <span class="section-title-text">Site-wide monthly summary</span>
+  </div>
+
+  <div class="query-block">
+    <div class="qb-explain">
+      <div class="qb-label">The problem</div>
+      <div class="qb-title">GSC exports one row per date/page/query/device/country</div>
+      <p class="qb-desc">A 12-month export for a 50-page site with all dimensions enabled produces 1.7 million rows. Before any analysis is possible, these must be aggregated to monthly totals — but two common mistakes inflate your numbers if you're not careful.</p>
+      <div class="callout">
+        <strong>⚠ Never average the CTR column</strong>
+        Averaging CTR across rows gives wrong results. Always recalculate: <code>SUM(clicks) / SUM(impressions)</code>.
+      </div>
+      <div class="callout">
+        <strong>⚠ Weight position by impressions</strong>
+        A page ranking #3 for 10,000 impressions should dominate your average. Use <code>SUM(position × impressions) / SUM(impressions)</code>.
+      </div>
+    </div>
+    <div class="qb-code">
+<pre><span class="kw">SELECT</span>
+    <span class="fn">DATE_TRUNC</span>(<span class="str">'month'</span>, date)       <span class="kw">AS</span> month,
+    <span class="fn">SUM</span>(clicks)                    <span class="kw">AS</span> total_clicks,
+    <span class="fn">SUM</span>(impressions)               <span class="kw">AS</span> total_impressions,
+    <span class="fn">ROUND</span>(
+        <span class="fn">SUM</span>(clicks) <span class="op">* 1.0</span>
+        <span class="op">/</span> <span class="fn">NULLIF</span>(<span class="fn">SUM</span>(impressions), <span class="num">0</span>)
+        <span class="op">* 100</span>
+    , <span class="num">2</span>)                           <span class="kw">AS</span> ctr_pct,
+    <span class="fn">ROUND</span>(
+        <span class="fn">SUM</span>(position <span class="op">*</span> impressions)
+        <span class="op">/</span> <span class="fn">NULLIF</span>(<span class="fn">SUM</span>(impressions), <span class="num">0</span>)
+    , <span class="num">1</span>)                           <span class="kw">AS</span> avg_position
+<span class="kw">FROM</span> gsc
+<span class="kw">GROUP BY</span> <span class="num">1</span>
+<span class="kw">ORDER BY</span> <span class="num">1</span></pre>
+    </div>
+  </div>
+
+  <!-- Q1 output table -->
+  <div id="outputs" class="chart-block">
+    <div class="chart-header">
+      <span class="chart-title">Query 1 output — 12 months site-wide</span>
+      <span class="chart-subtitle">1,697,250 rows → 12 rows</span>
+    </div>
+    <div class="qb-output">
+      <table>
+        <thead><tr><th>Month</th><th>Total Clicks</th><th>Total Impressions</th><th>CTR %</th><th>Avg Position</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">2025-06</td><td class="mono">33,071</td><td class="mono">743,472</td><td class="mono">4.45%</td><td class="mono">21.9</td></tr>
+          <tr><td class="mono">2025-07</td><td class="mono">33,094</td><td class="mono">752,607</td><td class="mono">4.40%</td><td class="mono">21.9</td></tr>
+          <tr><td class="mono">2025-08</td><td class="mono">34,943</td><td class="mono">776,258</td><td class="mono">4.50%</td><td class="mono">21.8</td></tr>
+          <tr><td class="mono">2025-09</td><td class="mono">39,170</td><td class="mono">826,834</td><td class="mono">4.74%</td><td class="mono">21.9</td></tr>
+          <tr><td class="mono">2025-10</td><td class="mono">46,017</td><td class="mono">921,005</td><td class="mono">5.00%</td><td class="mono">22.0</td></tr>
+          <tr><td class="mono">2025-11</td><td class="mono">46,968</td><td class="mono">925,630</td><td class="mono">5.07%</td><td class="mono">21.9</td></tr>
+          <tr><td class="mono">2025-12</td><td class="mono">45,586</td><td class="mono">914,684</td><td class="mono">4.98%</td><td class="mono">21.9</td></tr>
+          <tr><td class="mono">2026-01</td><td class="mono">44,011</td><td class="mono">897,441</td><td class="mono">4.90%</td><td class="mono">21.9</td></tr>
+          <tr><td class="mono">2026-02</td><td class="mono">35,568</td><td class="mono">756,457</td><td class="mono">4.70%</td><td class="mono">21.9</td></tr>
+          <tr><td class="mono">2026-03</td><td class="mono">42,099</td><td class="mono">871,662</td><td class="mono">4.83%</td><td class="mono">21.9</td></tr>
+          <tr><td class="mono">2026-04</td><td class="mono">37,365</td><td class="mono">799,892</td><td class="mono">4.67%</td><td class="mono">21.8</td></tr>
+          <tr><td class="mono">2026-05</td><td class="mono">37,443</td><td class="mono">810,388</td><td class="mono">4.62%</td><td class="mono">21.9</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Chart 1 -->
+  <div class="chart-block">
+    <div class="chart-header">
+      <span class="chart-title">Site-wide Monthly Clicks & Impressions</span>
+      <span class="chart-subtitle">bars = clicks (left axis) · line = impressions (right axis)</span>
+    </div>
+    <img class="chart-img" src="1780061319854_image.png" alt="Site-wide monthly clicks and impressions chart">
+  </div>
+
+  <!-- Q2 -->
+  <div class="section-label">
+    <span class="section-num">Query 02</span>
+    <span class="section-title-text">Monthly summary by content section</span>
+  </div>
+
+  <div class="query-block">
+    <div class="qb-explain">
+      <div class="qb-label">The problem</div>
+      <div class="qb-title">Site-wide totals hide section-level shifts</div>
+      <p class="qb-desc">A publisher's sections behave very differently — News is driven by freshness cycles, Legal & Compliance by regulatory events, Casino Reviews by commercial intent. Aggregating everything together masks which sections are growing and which are declining.</p>
+      <div class="callout">
+        <strong>Pattern: CASE WHEN for URL classification</strong>
+        Using <code>LIKE '/news/%'</code> pattern matching to bucket every URL into a named section. This pattern repeats in every subsequent query — learn it once, reuse everywhere.
+      </div>
+    </div>
+    <div class="qb-code">
+<pre><span class="kw">SELECT</span>
+    <span class="fn">DATE_TRUNC</span>(<span class="str">'month'</span>, date)    <span class="kw">AS</span> month,
+    <span class="kw">CASE</span>
+        <span class="kw">WHEN</span> page <span class="op">=</span> <span class="str">'/'</span>
+            <span class="kw">THEN</span> <span class="str">'Homepage'</span>
+        <span class="kw">WHEN</span> page <span class="kw">LIKE</span> <span class="str">'/news/%'</span>
+            <span class="kw">THEN</span> <span class="str">'News'</span>
+        <span class="kw">WHEN</span> page <span class="kw">LIKE</span> <span class="str">'/casino-reviews/%'</span>
+            <span class="kw">THEN</span> <span class="str">'Casino Reviews'</span>
+        <span class="kw">WHEN</span> page <span class="kw">LIKE</span> <span class="str">'/legal-compliance/%'</span>
+            <span class="kw">THEN</span> <span class="str">'Legal & Compliance'</span>
+        <span class="cm">-- ... other sections</span>
+        <span class="kw">ELSE</span> <span class="str">'Other'</span>
+    <span class="kw">END</span>                           <span class="kw">AS</span> section,
+    <span class="fn">SUM</span>(clicks)                  <span class="kw">AS</span> total_clicks,
+    <span class="fn">SUM</span>(impressions)             <span class="kw">AS</span> total_impressions,
+    <span class="fn">ROUND</span>(
+        <span class="fn">SUM</span>(clicks) <span class="op">* 1.0</span>
+        <span class="op">/</span> <span class="fn">NULLIF</span>(<span class="fn">SUM</span>(impressions),<span class="num">0</span>)
+        <span class="op">* 100</span>
+    , <span class="num">2</span>)                         <span class="kw">AS</span> ctr_pct,
+    <span class="fn">COUNT</span>(<span class="kw">DISTINCT</span> page)         <span class="kw">AS</span> pages_active
+<span class="kw">FROM</span> gsc
+<span class="kw">GROUP BY</span> <span class="num">1</span>, <span class="num">2</span>
+<span class="kw">ORDER BY</span> <span class="num">1</span>, <span class="num">3</span> <span class="kw">DESC</span></pre>
+    </div>
+  </div>
+
+  <!-- Q2 chart -->
+  <div class="chart-block">
+    <div class="chart-header">
+      <span class="chart-title">Monthly Clicks by Section</span>
+      <span class="chart-subtitle">stacked bars · each colour = one content section</span>
+    </div>
+    <img class="chart-img" src="1780061338487_image.png" alt="Monthly clicks by section stacked bar chart">
+  </div>
+
+  <!-- Q2 table sample -->
+  <div class="chart-block" style="margin-bottom:40px;">
+    <div class="chart-header">
+      <span class="chart-title">Query 2 output — Jun 2025 section breakdown</span>
+      <span class="chart-subtitle">first month shown · 10 sections</span>
+    </div>
+    <div class="qb-output">
+      <table>
+        <thead><tr><th>Section</th><th>Clicks</th><th>Impressions</th><th>CTR %</th><th>Avg Position</th><th>Pages Active</th></tr></thead>
+        <tbody>
+          <tr><td>News</td><td class="mono">7,067</td><td class="mono">163,445</td><td class="mono">4.32%</td><td class="mono">21.2</td><td class="mono">11</td></tr>
+          <tr><td>Legal & Compliance</td><td class="mono">4,503</td><td class="mono">96,315</td><td class="mono">4.68%</td><td class="mono">20.2</td><td class="mono">6</td></tr>
+          <tr><td>Casino Reviews</td><td class="mono">4,284</td><td class="mono">94,091</td><td class="mono">4.55%</td><td class="mono">24.0</td><td class="mono">6</td></tr>
+          <tr><td>Sports Betting</td><td class="mono">4,160</td><td class="mono">95,937</td><td class="mono">4.34%</td><td class="mono">24.2</td><td class="mono">6</td></tr>
+          <tr><td>Finance</td><td class="mono">3,982</td><td class="mono">86,372</td><td class="mono">4.61%</td><td class="mono">23.9</td><td class="mono">6</td></tr>
+          <tr><td>Homepage</td><td class="mono">2,649</td><td class="mono">43,589</td><td class="mono">6.08%</td><td class="mono">8.4</td><td class="mono">1</td></tr>
+          <tr><td>People</td><td class="mono">2,315</td><td class="mono">52,068</td><td class="mono">4.45%</td><td class="mono">24.0</td><td class="mono">4</td></tr>
+          <tr><td>Jobs</td><td class="mono">1,689</td><td class="mono">40,575</td><td class="mono">4.16%</td><td class="mono">23.5</td><td class="mono">3</td></tr>
+          <tr><td>Directory</td><td class="mono">1,499</td><td class="mono">48,191</td><td class="mono">3.11%</td><td class="mono">23.9</td><td class="mono">4</td></tr>
+          <tr><td>Events</td><td class="mono">923</td><td class="mono">22,889</td><td class="mono">4.03%</td><td class="mono">23.6</td><td class="mono">2</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="section-label">
+    <span class="section-num">Query 03</span>
+    <span class="section-title-text">Month-over-month change with LAG</span>
+  </div>
+
+  <div class="query-block full">
+    <div class="qb-explain" style="border-right:none; border-bottom: 1.5px solid var(--ink);">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:32px;">
+        <div>
+          <div class="qb-label">The problem</div>
+          <div class="qb-title">Raw totals don't tell you direction</div>
+          <p class="qb-desc">Knowing News got 7,985 clicks in May is meaningless without knowing it was 8,228 the month before. The <code>LAG()</code> window function looks back one row within each section's partition to calculate the difference automatically — no manual month-by-month comparisons needed.</p>
+        </div>
+        <div>
+          <div class="callout" style="margin-top:0">
+            <strong>New concept: CTE (WITH … AS)</strong>
+            The section aggregation is written once as a named sub-query, then referenced cleanly in the outer query for the LAG calculation. Much more readable than nesting sub-queries inside each other.
+          </div>
+          <div class="callout" style="margin-top:12px">
+            <strong>New concept: PARTITION BY</strong>
+            Without <code>PARTITION BY section</code>, LAG would look at the previous row globally — comparing News in May to Finance in April. Partitioning resets the window per section so each section compares against itself.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="qb-code" style="border-top: none;">
+<pre><span class="kw">WITH</span> monthly_section <span class="kw">AS</span> (
+    <span class="kw">SELECT</span>
+        <span class="fn">DATE_TRUNC</span>(<span class="str">'month'</span>, date)   <span class="kw">AS</span> month,
+        <span class="kw">CASE</span>
+            <span class="kw">WHEN</span> page <span class="kw">LIKE</span> <span class="str">'/news/%'</span>  <span class="kw">THEN</span> <span class="str">'News'</span>
+            <span class="cm">-- ... other sections</span>
+        <span class="kw">END</span>                         <span class="kw">AS</span> section,
+        <span class="fn">SUM</span>(clicks)                 <span class="kw">AS</span> total_clicks,
+        <span class="fn">SUM</span>(impressions)            <span class="kw">AS</span> total_impressions
+    <span class="kw">FROM</span> gsc
+    <span class="kw">GROUP BY</span> <span class="num">1</span>, <span class="num">2</span>
+)
+<span class="kw">SELECT</span>
+    month,
+    section,
+    total_clicks,
+    <span class="fn">LAG</span>(total_clicks)
+        <span class="kw">OVER</span> (<span class="kw">PARTITION BY</span> section
+              <span class="kw">ORDER BY</span> month)       <span class="kw">AS</span> prev_clicks,
+    <span class="fn">ROUND</span>(
+        (total_clicks
+         <span class="op">-</span> <span class="fn">LAG</span>(total_clicks)
+               <span class="kw">OVER</span> (<span class="kw">PARTITION BY</span> section
+                     <span class="kw">ORDER BY</span> month))
+        <span class="op">* 100.0</span>
+        <span class="op">/</span> <span class="fn">NULLIF</span>(
+            <span class="fn">LAG</span>(total_clicks)
+              <span class="kw">OVER</span> (<span class="kw">PARTITION BY</span> section
+                    <span class="kw">ORDER BY</span> month), <span class="num">0</span>)
+    , <span class="num">1</span>)                           <span class="kw">AS</span> clicks_mom_pct
+<span class="kw">FROM</span> monthly_section
+<span class="kw">ORDER BY</span> month <span class="kw">DESC</span>, total_clicks <span class="kw">DESC</span></pre>
+    </div>
+  </div>
+
+  <!-- Q3 output: latest month MoM -->
+  <div class="chart-block" style="margin-bottom:40px;">
+    <div class="chart-header">
+      <span class="chart-title">Query 3 output — May 2026 MoM change vs April</span>
+      <span class="chart-subtitle">most recent month · positive = growth · negative = decline</span>
+    </div>
+    <div class="qb-output">
+      <table>
+        <thead><tr><th>Section</th><th>Clicks (May)</th><th>Clicks (Apr)</th><th>MoM %</th><th>Impressions (May)</th><th>Imp MoM %</th></tr></thead>
+        <tbody>
+          <tr><td>News</td><td class="mono">7,985</td><td class="mono">8,228</td><td class="negative">−3.0%</td><td class="mono">177,567</td><td class="positive">+1.1%</td></tr>
+          <tr><td>Legal & Compliance</td><td class="mono">5,036</td><td class="mono">4,974</td><td class="positive">+1.2%</td><td class="mono">105,009</td><td class="positive">+1.6%</td></tr>
+          <tr><td>Sports Betting</td><td class="mono">4,766</td><td class="mono">4,577</td><td class="positive">+4.1%</td><td class="mono">105,055</td><td class="positive">+1.4%</td></tr>
+          <tr><td>Casino Reviews</td><td class="mono">4,729</td><td class="mono">4,679</td><td class="positive">+1.1%</td><td class="mono">102,074</td><td class="positive">+1.8%</td></tr>
+          <tr><td>Finance</td><td class="mono">4,500</td><td class="mono">4,318</td><td class="positive">+4.2%</td><td class="mono">94,090</td><td class="positive">+1.9%</td></tr>
+          <tr><td>Homepage</td><td class="mono">3,046</td><td class="mono">3,057</td><td class="neutral">−0.4%</td><td class="mono">47,503</td><td class="neutral">−0.2%</td></tr>
+          <tr><td>People</td><td class="mono">2,672</td><td class="mono">2,646</td><td class="positive">+1.0%</td><td class="mono">57,404</td><td class="positive">+2.4%</td></tr>
+          <tr><td>Jobs</td><td class="mono">1,880</td><td class="mono">1,951</td><td class="negative">−3.6%</td><td class="mono">43,932</td><td class="positive">+1.3%</td></tr>
+          <tr><td>Directory</td><td class="mono">1,792</td><td class="mono">1,813</td><td class="neutral">−1.2%</td><td class="mono">52,675</td><td class="positive">+0.4%</td></tr>
+          <tr><td>Events</td><td class="mono">1,037</td><td class="mono">1,122</td><td class="negative">−7.6%</td><td class="mono">25,079</td><td class="neutral">−0.3%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="section-label">
+    <span class="section-num">Query 04</span>
+    <span class="section-title-text">Device split by section</span>
+  </div>
+
+  <div class="query-block">
+    <div class="qb-explain">
+      <div class="qb-label">The problem</div>
+      <div class="qb-title">Device behaviour varies significantly by content type</div>
+      <p class="qb-desc">Casino reviews and jobs content may need different mobile optimisation priorities than news. This query shows what percentage of each section's clicks come from each device — using a partitioned window SUM to calculate proportions within each section without a separate total query.</p>
+      <div class="callout">
+        <strong>Pattern: Window SUM for percentages</strong>
+        <code>SUM(clicks) OVER (PARTITION BY section)</code> gives the section total on every row, so you can divide each row's value by its own group total in a single pass — no self-join required.
+      </div>
+    </div>
+    <div class="qb-code">
+<pre><span class="kw">SELECT</span>
+    <span class="cm">/* section CASE WHEN here */</span>  <span class="kw">AS</span> section,
+    device,
+    <span class="fn">SUM</span>(clicks)                  <span class="kw">AS</span> clicks,
+    <span class="fn">ROUND</span>(
+        <span class="fn">SUM</span>(clicks) <span class="op">* 100.0</span>
+        <span class="op">/</span> <span class="fn">SUM</span>(<span class="fn">SUM</span>(clicks))
+              <span class="kw">OVER</span> (<span class="kw">PARTITION BY</span>
+                  <span class="cm">/* section CASE */</span>)
+    , <span class="num">1</span>)                         <span class="kw">AS</span> pct_of_section
+<span class="kw">FROM</span> gsc
+<span class="kw">WHERE</span> <span class="fn">DATE_TRUNC</span>(<span class="str">'month'</span>, date)
+    <span class="op">=</span> (<span class="kw">SELECT</span> <span class="fn">MAX</span>(
+           <span class="fn">DATE_TRUNC</span>(<span class="str">'month'</span>, date))
+       <span class="kw">FROM</span> gsc)
+<span class="kw">GROUP BY</span> <span class="num">1</span>, <span class="num">2</span>
+<span class="kw">ORDER BY</span> <span class="num">1</span>, <span class="num">3</span> <span class="kw">DESC</span></pre>
+    </div>
+  </div>
+
+  <!-- Device visualisation -->
+  <div class="chart-block" style="margin-bottom: 0; border-bottom: none;">
+    <div class="chart-header">
+      <span class="chart-title">Query 4 output — Device split by section (May 2026)</span>
+      <span class="chart-subtitle">
+        <span style="color:var(--accent2)">■</span> Desktop &nbsp;
+        <span style="color:var(--accent)">■</span> Mobile &nbsp;
+        <span style="color:var(--muted)">■</span> Tablet
+      </span>
+    </div>
+  </div>
+  <div class="device-grid">
+    <div class="device-card">
+      <div class="device-section-name">News</div>
+      <div class="device-bar-row"><span class="device-label">Desktop</span><div class="device-bar-wrap"><div class="device-bar bar-desktop" style="width:60.3%"></div></div><span class="device-pct">60.3%</span></div>
+      <div class="device-bar-row"><span class="device-label">Mobile</span><div class="device-bar-wrap"><div class="device-bar bar-mobile" style="width:38.8%"></div></div><span class="device-pct">38.8%</span></div>
+      <div class="device-bar-row"><span class="device-label">Tablet</span><div class="device-bar-wrap"><div class="device-bar bar-tablet" style="width:0.9%"></div></div><span class="device-pct">0.9%</span></div>
+    </div>
+    <div class="device-card">
+      <div class="device-section-name">Casino Reviews</div>
+      <div class="device-bar-row"><span class="device-label">Desktop</span><div class="device-bar-wrap"><div class="device-bar bar-desktop" style="width:59.3%"></div></div><span class="device-pct">59.3%</span></div>
+      <div class="device-bar-row"><span class="device-label">Mobile</span><div class="device-bar-wrap"><div class="device-bar bar-mobile" style="width:39.8%"></div></div><span class="device-pct">39.8%</span></div>
+      <div class="device-bar-row"><span class="device-label">Tablet</span><div class="device-bar-wrap"><div class="device-bar bar-tablet" style="width:0.9%"></div></div><span class="device-pct">0.9%</span></div>
+    </div>
+    <div class="device-card">
+      <div class="device-section-name">Sports Betting</div>
+      <div class="device-bar-row"><span class="device-label">Desktop</span><div class="device-bar-wrap"><div class="device-bar bar-desktop" style="width:60.2%"></div></div><span class="device-pct">60.2%</span></div>
+      <div class="device-bar-row"><span class="device-label">Mobile</span><div class="device-bar-wrap"><div class="device-bar bar-mobile" style="width:39.2%"></div></div><span class="device-pct">39.2%</span></div>
+      <div class="device-bar-row"><span class="device-label">Tablet</span><div class="device-bar-wrap"><div class="device-bar bar-tablet" style="width:0.6%"></div></div><span class="device-pct">0.6%</span></div>
+    </div>
+    <div class="device-card">
+      <div class="device-section-name">Legal & Compliance</div>
+      <div class="device-bar-row"><span class="device-label">Desktop</span><div class="device-bar-wrap"><div class="device-bar bar-desktop" style="width:58.4%"></div></div><span class="device-pct">58.4%</span></div>
+      <div class="device-bar-row"><span class="device-label">Mobile</span><div class="device-bar-wrap"><div class="device-bar bar-mobile" style="width:40.5%"></div></div><span class="device-pct">40.5%</span></div>
+      <div class="device-bar-row"><span class="device-label">Tablet</span><div class="device-bar-wrap"><div class="device-bar bar-tablet" style="width:1.1%"></div></div><span class="device-pct">1.1%</span></div>
+    </div>
+    <div class="device-card">
+      <div class="device-section-name">Finance</div>
+      <div class="device-bar-row"><span class="device-label">Desktop</span><div class="device-bar-wrap"><div class="device-bar bar-desktop" style="width:60.1%"></div></div><span class="device-pct">60.1%</span></div>
+      <div class="device-bar-row"><span class="device-label">Mobile</span><div class="device-bar-wrap"><div class="device-bar bar-mobile" style="width:38.8%"></div></div><span class="device-pct">38.8%</span></div>
+      <div class="device-bar-row"><span class="device-label">Tablet</span><div class="device-bar-wrap"><div class="device-bar bar-tablet" style="width:1.1%"></div></div><span class="device-pct">1.1%</span></div>
+    </div>
+    <div class="device-card">
+      <div class="device-section-name">Homepage</div>
+      <div class="device-bar-row"><span class="device-label">Desktop</span><div class="device-bar-wrap"><div class="device-bar bar-desktop" style="width:57.6%"></div></div><span class="device-pct">57.6%</span></div>
+      <div class="device-bar-row"><span class="device-label">Mobile</span><div class="device-bar-wrap"><div class="device-bar bar-mobile" style="width:41.1%"></div></div><span class="device-pct">41.1%</span></div>
+      <div class="device-bar-row"><span class="device-label">Tablet</span><div class="device-bar-wrap"><div class="device-bar bar-tablet" style="width:1.4%"></div></div><span class="device-pct">1.4%</span></div>
+    </div>
+    <div class="device-card">
+      <div class="device-section-name">Jobs</div>
+      <div class="device-bar-row"><span class="device-label">Desktop</span><div class="device-bar-wrap"><div class="device-bar bar-desktop" style="width:59.1%"></div></div><span class="device-pct">59.1%</span></div>
+      <div class="device-bar-row"><span class="device-label">Mobile</span><div class="device-bar-wrap"><div class="device-bar bar-mobile" style="width:40.1%"></div></div><span class="device-pct">40.1%</span></div>
+      <div class="device-bar-row"><span class="device-label">Tablet</span><div class="device-bar-wrap"><div class="device-bar bar-tablet" style="width:0.8%"></div></div><span class="device-pct">0.8%</span></div>
+    </div>
+    <div class="device-card">
+      <div class="device-section-name">Directory</div>
+      <div class="device-bar-row"><span class="device-label">Desktop</span><div class="device-bar-wrap"><div class="device-bar bar-desktop" style="width:58.5%"></div></div><span class="device-pct">58.5%</span></div>
+      <div class="device-bar-row"><span class="device-label">Mobile</span><div class="device-bar-wrap"><div class="device-bar bar-mobile" style="width:41.1%"></div></div><span class="device-pct">41.1%</span></div>
+      <div class="device-bar-row"><span class="device-label">Tablet</span><div class="device-bar-wrap"><div class="device-bar bar-tablet" style="width:0.4%"></div></div><span class="device-pct">0.4%</span></div>
+    </div>
+    <div class="device-card" style="border-right:none;">
+      <div class="device-section-name">Events</div>
+      <div class="device-bar-row"><span class="device-label">Desktop</span><div class="device-bar-wrap"><div class="device-bar bar-desktop" style="width:58.5%"></div></div><span class="device-pct">58.5%</span></div>
+      <div class="device-bar-row"><span class="device-label">Mobile</span><div class="device-bar-wrap"><div class="device-bar bar-mobile" style="width:40.8%"></div></div><span class="device-pct">40.8%</span></div>
+      <div class="device-bar-row"><span class="device-label">Tablet</span><div class="device-bar-wrap"><div class="device-bar bar-tablet" style="width:0.7%"></div></div><span class="device-pct">0.7%</span></div>
+    </div>
+  </div>
+
+  <!-- INSIGHTS -->
+  <div class="section-label" id="insights">
+    <span class="section-num">So what?</span>
+    <span class="section-title-text">What these queries actually tell us</span>
+  </div>
+
+  <div class="insights-grid">
+    <div class="insight-card">
+      <div class="insight-icon">📈</div>
+      <div class="insight-heading">Seasonal peak is Q4</div>
+      <p class="insight-body">Clicks peaked at 46,968 in November 2025 — a 42% uplift vs the June low of 33,071. The pattern aligns with iGaming's sports betting season (NFL, Champions League). Content calendars should front-load production in September to capture this window.</p>
+    </div>
+    <div class="insight-card">
+      <div class="insight-icon">⚠️</div>
+      <div class="insight-heading">Events section in decline</div>
+      <p class="insight-body">Events is the only section showing both a clicks decline (−7.6% MoM) and flat impressions in May. Impressions holding while clicks fall suggests a CTR problem, not a visibility problem — title tags and meta descriptions for event pages are likely the lever to pull.</p>
+    </div>
+    <div class="insight-card">
+      <div class="insight-icon">📱</div>
+      <div class="insight-heading">Desktop still dominant</div>
+      <p class="insight-body">All sections sit at ~58–60% desktop, with Homepage the most mobile-leaning at 41% mobile clicks. This is characteristic of a B2B/trade publisher audience — industry professionals researching on work machines. Mobile optimisation matters but desktop UX remains the priority.</p>
+    </div>
+  </div>
+
+  <!-- SQL CONCEPTS SUMMARY -->
+  <div class="section-label">
+    <span class="section-num">Reference</span>
+    <span class="section-title-text">SQL concepts used in this use case</span>
+  </div>
+
+  <div style="border: 1.5px solid var(--ink); margin-bottom: 80px;">
+    <table>
+      <thead><tr><th>Concept</th><th>Query</th><th>Why it matters</th></tr></thead>
+      <tbody>
+        <tr><td><code style="font-family:'DM Mono',monospace;font-size:12px;">DATE_TRUNC('month', date)</code></td><td class="mono">Q1–Q4</td><td>Collapses daily rows into monthly buckets without losing date type</td></tr>
+        <tr><td><code style="font-family:'DM Mono',monospace;font-size:12px;">SUM(clicks) / SUM(impressions)</code></td><td class="mono">Q1–Q3</td><td>Correct CTR aggregation — never average the CTR column directly</td></tr>
+        <tr><td><code style="font-family:'DM Mono',monospace;font-size:12px;">SUM(position × impressions) / SUM(impressions)</code></td><td class="mono">Q1–Q2</td><td>Impression-weighted average position — more accurate than a mean</td></tr>
+        <tr><td><code style="font-family:'DM Mono',monospace;font-size:12px;">NULLIF(expr, 0)</code></td><td class="mono">Q1–Q4</td><td>Prevents divide-by-zero errors — returns NULL instead of crashing</td></tr>
+        <tr><td><code style="font-family:'DM Mono',monospace;font-size:12px;">CASE WHEN page LIKE '/news/%'</code></td><td class="mono">Q2–Q4</td><td>URL pattern matching to classify pages into content sections</td></tr>
+        <tr><td><code style="font-family:'DM Mono',monospace;font-size:12px;">WITH monthly AS ( … )</code></td><td class="mono">Q3</td><td>CTE: names a sub-query for reuse — avoids nested query spaghetti</td></tr>
+        <tr><td><code style="font-family:'DM Mono',monospace;font-size:12px;">LAG(col) OVER (PARTITION BY … ORDER BY …)</code></td><td class="mono">Q3</td><td>Looks back one row per section to calculate MoM change automatically</td></tr>
+        <tr><td><code style="font-family:'DM Mono',monospace;font-size:12px;">SUM(SUM(col)) OVER (PARTITION BY section)</code></td><td class="mono">Q4</td><td>Window aggregate for % share — no self-join needed</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</main>
+
+<footer class="site-footer">
+  <p>SEO × SQL Portfolio · Use Case 01 of 04 · Built with DuckDB + Google Colab</p>
+  <a class="next-case" href="#">Next: GA4 Single-Source Analysis →</a>
+</footer>
+
+</body>
+</html>
